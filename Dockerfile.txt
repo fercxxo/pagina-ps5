@@ -1,8 +1,16 @@
 FROM php:8.2-apache
-RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev zip
+RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev zip git unzip
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql
+
+# Instalar Composer para que descargue la carpeta vendor
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
 COPY . /var/www/html
+
+# Ejecutar la instalación de dependencias de Laravel
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
