@@ -4,3 +4,4 @@ services:
     env: docker
     plan: free
     dockerfilePath: Dockerfile.txt
+    buildCommand: "php artisan config:clear && php artisan cache:clear && php artisan view:clear"
