@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: pagina-ps5
+    env: php
+    plan: free
+    buildCommand: composer install --no-dev
+    startCommand: vendor/bin/heroku-php-apache2 public/
