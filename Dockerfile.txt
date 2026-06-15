@@ -1,26 +1,32 @@
 FROM php:8.2-apache
 
-# Instalar dependencias necesarias
+# 1. Instalar dependencias del sistema y extensiones de PHP necesarias
 RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev zip git unzip
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql
 
-# Instalar Composer
+# 2. Instalar Composer de forma global
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# 3. Copiar los archivos del proyecto al servidor
 COPY . /var/www/html
 
-# Crear carpeta de base de datos, archivo sqlite, y dar permisos
+# 4. Crear el directorio de la base de datos y el archivo SQLite vacío
 RUN mkdir -p /var/www/html/database \
-    && touch /var/www/html/database/database.sqlite \
-    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+    && touch /var/www/html/database/database.sqlite
 
-# Instalar dependencias de composer
+# 5. Instalar las dependencias de Laravel
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Configurar Apache
+# 6. Asignar los permisos correctos a todas las carpetas clave
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+
+# 7. Configurar Apache para Laravel
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 RUN a2enmod rewrite
+
+# 🚀 COMANDO MÁGICO: Ejecuta las migraciones automáticamente antes de iniciar Apache
+CMD php artisan migrate --force && apache2-foreground
