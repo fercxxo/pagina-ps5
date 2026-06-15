@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 // Cuando entren a /ps5 muestra la página de la consola
-Route::get('/ps5', function () {
+Route::get('/', function () {
     return view('ps5');
 });
 
