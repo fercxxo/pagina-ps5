@@ -3,3 +3,4 @@ services:
     name: pagina-ps5
     env: docker
     plan: free
+    dockerfilePath: Dockerfile.txt
