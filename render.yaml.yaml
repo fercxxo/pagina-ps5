@@ -2,3 +2,4 @@ services:
   - type: web
     name: pagina-ps5
     env: docker
+    plan: free
