@@ -3,13 +3,18 @@ RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql
 
-# Instalar Composer para que descargue la carpeta vendor
+# Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 COPY . /var/www/html
 
-# Ejecutar la instalación de dependencias de Laravel
+# Instalar dependencias
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Comandos clave para limpiar Laravel y evitar el Error 500
+RUN php artisan config:clear
+RUN php artisan cache:clear
+RUN php artisan view:clear
 
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
